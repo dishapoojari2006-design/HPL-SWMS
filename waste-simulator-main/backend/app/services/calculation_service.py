@@ -210,7 +210,10 @@ def cross_method_reconcile(
         "confidence_level": confidence,
         "method_estimates": estimates,
         "deviations": deviations,
-        "data_status": "MEASURED" if "Measured" in selected_method else "CALCULATED"
+        "data_status": "MEASURED" if "Measured" in selected_method else "CALCULATED",
+        "reconciled_daily_kg": round(selected_val * 1000.0, 2),
+        "reconciled_kg_day": round(selected_val * 1000.0, 2),
+        "reconciled_tonnes_day": selected_val
     }
 
 def collection_gap_analysis(daily_waste_kg: float, vehicle_count: int, vehicle_capacity_kg: float, trips_per_vehicle: int, coverage_pct: float = 100.0) -> Dict[str, Any]:

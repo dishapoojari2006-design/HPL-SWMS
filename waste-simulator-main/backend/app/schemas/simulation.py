@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import ConfigDict, BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field, model_validator
 
 class StrategyCreate(BaseModel):
     location_id: int
@@ -37,8 +37,19 @@ class SimulationRunIn(BaseModel):
     scenario_overrides: Dict[str, Any] = Field(default_factory=dict)
     strategy_id: Optional[int] = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def reconcile_input(cls, data: Any):
+        if isinstance(data, dict):
+            if "horizon_years" in data and "years" not in data:
+                data["years"] = data["horizon_years"]
+            if "params" in data and "parameters" not in data:
+                data["parameters"] = data["params"]
+        return data
+
 class WhatIfComparisonIn(BaseModel):
     location_id: int
     years: int = Field(20, ge=1, le=50)
     baseline_parameters: Dict[str, Any]
     what_if_overrides: Dict[str, Any]
+

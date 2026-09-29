@@ -8,6 +8,7 @@ class ChatIn(BaseModel):
 
 class ChatOut(BaseModel):
     answer: str
+    reply: Optional[str] = None
     evidence: Dict[str, Any]
     source_attribution: str
     data_status: str

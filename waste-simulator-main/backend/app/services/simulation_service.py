@@ -16,7 +16,7 @@ def run_multi_year_simulation(
     growth_rate = float(merged_params.get("population_growth_rate", 2.0)) / 100.0
     base_pop = float(merged_params.get("total_population", 25000.0))
     base_hh = float(merged_params.get("households", base_pop / 4.5 if base_pop > 0 else 5500.0))
-    per_capita_kg = float(merged_params.get("waste_per_person_per_day", 0.50))
+    per_capita_kg = float(merged_params.get("waste_per_person_per_day", merged_params.get("waste_per_capita_kg", 0.50)))
     per_hh_kg = float(merged_params.get("waste_per_household_per_day", 2.27))
 
     floating_pop = float(merged_params.get("floating_population", 0.0))
@@ -35,7 +35,7 @@ def run_multi_year_simulation(
     vehicles = int(merged_params.get("vehicle_count", 10))
     vehicle_cap_kg = float(merged_params.get("vehicle_capacity_kg", 2000.0))
     trips_per_v = int(merged_params.get("trips_per_vehicle", 1))
-    coverage_pct = float(merged_params.get("collection_coverage_percent", 100.0))
+    coverage_pct = float(merged_params.get("collection_coverage_percent", merged_params.get("collection_coverage_pct", 100.0)))
     treatment_cap_kg = float(merged_params.get("treatment_capacity_kg", 10000.0))
     segregation_pct = float(merged_params.get("segregation_percent", 60.0))
 

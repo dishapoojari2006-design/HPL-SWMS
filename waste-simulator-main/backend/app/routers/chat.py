@@ -35,6 +35,7 @@ def chat_with_assistant(
 
     return {
         "answer": result["answer"],
+        "reply": result["answer"],
         "evidence": result["evidence"],
         "source_attribution": result["source_attribution"],
         "data_status": result["data_status"],

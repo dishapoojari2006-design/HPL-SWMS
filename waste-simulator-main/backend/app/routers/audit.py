@@ -8,9 +8,10 @@ from app.models.user import User
 from app.models.audit import AuditLog
 from app.schemas.report import AuditLogOut
 
-router = APIRouter(prefix="/audit", tags=["Audit Logs"])
+router = APIRouter(tags=["Audit Logs"])
 
-@router.get("", response_model=List[AuditLogOut])
+@router.get("/audit", response_model=List[AuditLogOut])
+@router.get("/audit-logs", response_model=List[AuditLogOut])
 def get_audit_logs(
     module: Optional[str] = None,
     limit: int = 100,

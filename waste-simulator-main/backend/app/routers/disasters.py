@@ -15,6 +15,7 @@ from app.services.disaster_engine import run_disaster_multi_day_accumulation
 router = APIRouter(prefix="/disasters", tags=["Disaster & Environmental Emergencies"])
 
 @router.get("", response_model=List[DisasterEventOut])
+@router.get("/events", response_model=List[DisasterEventOut])
 def list_disaster_events(
     location_id: Optional[int] = None,
     db: Session = Depends(get_db),
