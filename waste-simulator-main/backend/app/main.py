@@ -29,7 +29,12 @@ from app.routers.chat import router as chat_router
 from app.routers.reports import router as reports_router
 from app.routers.audit import router as audit_router
 from app.routers.data_quality import router as data_quality_router
+from app.routers.disasters import router as disasters_router
+from app.routers.disaster_scenarios import router as disaster_scenarios_router
+from app.routers.disaster_analysis import router as disaster_analysis_router
+from app.routers.emergency_shelters import router as emergency_shelters_router
 from app.routers.legacy import router as legacy_router
+
 
 def seed_database():
     Base.metadata.create_all(bind=engine)
@@ -327,8 +332,13 @@ api_v1.include_router(chat_router)
 api_v1.include_router(reports_router)
 api_v1.include_router(audit_router)
 api_v1.include_router(data_quality_router)
+api_v1.include_router(disasters_router)
+api_v1.include_router(disaster_scenarios_router)
+api_v1.include_router(disaster_analysis_router)
+api_v1.include_router(emergency_shelters_router)
 api_v1.include_router(legacy_router)
 
 # Mount both under /api/v1 and top-level for backwards compatibility
 app.mount("/api/v1", api_v1)
 app.include_router(legacy_router, prefix="/api/v1")
+

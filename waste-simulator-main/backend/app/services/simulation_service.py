@@ -122,8 +122,8 @@ def run_multi_year_simulation(
         "parameters": merged_params,
         "years": yearly_series,
         "total_cumulative_20yr_tonnes": round(cumulative_tonnes, 1),
-        "fleet_breach_year": next((r["year"] for r in yearly_series if r["collection"]["collection_gap_kg_day"] > 0), None),
-        "treatment_breach_year": next((r["year"] for r in yearly_series if r["treatment"]["treatment_gap_kg_day"] > 0), None)
+        "fleet_breach_year": next((r["year"] for r in yearly_series if r["collection"].get("collection_gap_kg_day", 0) > 0), None),
+        "treatment_breach_year": next((r["year"] for r in yearly_series if r["treatment"].get("treatment_gap_kg", 0) > 0 or r["treatment"].get("treatment_gap_tonnes", 0) > 0), None)
     }
 
 def run_what_if_analysis(baseline_params: Dict[str, Any], overrides: Dict[str, Any], years: int = 20) -> Dict[str, Any]:
