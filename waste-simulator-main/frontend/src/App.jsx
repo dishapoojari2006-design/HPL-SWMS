@@ -19,6 +19,10 @@ import WizardPage from "./pages/WizardPage";
 import ReportsPage from "./pages/ReportsPage";
 import UsersPage from "./pages/UsersPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
+import DisasterPlanningPage from "./pages/DisasterPlanningPage";
+import DisasterAnalysisPage from "./pages/DisasterAnalysisPage";
+import DisasterScenariosPage from "./pages/DisasterScenariosPage";
+import EmergencySheltersPage from "./pages/EmergencySheltersPage";
 
 const ProtectedLayout = () => {
   const { user } = useAuth();
@@ -43,6 +47,10 @@ const ProtectedLayout = () => {
             <Route path="/gis" element={<GISPage />} />
             <Route path="/data-quality" element={<DataQualityPage />} />
             <Route path="/wizard" element={<WizardPage />} />
+            <Route path="/disasters/planning" element={<DisasterPlanningPage />} />
+            <Route path="/disasters/analysis" element={<DisasterAnalysisPage />} />
+            <Route path="/disasters/scenarios" element={<DisasterScenariosPage />} />
+            <Route path="/emergency-shelters" element={<EmergencySheltersPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/audit-logs" element={<AuditLogsPage />} />

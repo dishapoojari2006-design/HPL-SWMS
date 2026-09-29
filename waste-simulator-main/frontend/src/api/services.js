@@ -94,3 +94,19 @@ export const dataQualityService = {
 export const auditService = {
   list: (limit = 100) => apiClient.get(`/audit-logs?limit=${limit}`),
 };
+
+export const disasterService = {
+  list: (locationId) => apiClient.get(`/disasters?location_id=${locationId}`),
+  getById: (id) => apiClient.get(`/disasters/${id}`),
+  create: (data) => apiClient.post("/disasters", data),
+  delete: (id) => apiClient.delete(`/disasters/${id}`),
+  simulateAccumulation: (data) => apiClient.post("/disaster-analysis/simulate", data),
+  whatIfAnalysis: (data) => apiClient.post("/disaster-scenarios/what-if", data),
+};
+
+export const shelterService = {
+  list: (locationId) => apiClient.get(`/emergency-shelters?location_id=${locationId}`),
+  create: (data) => apiClient.post("/emergency-shelters", data),
+  delete: (id) => apiClient.delete(`/emergency-shelters/${id}`),
+};
+
