@@ -32,14 +32,11 @@ export const LocationProvider = ({ children }) => {
     if (found) setSelectedLocation(found);
   };
 
-  const selectedLocationId = selectedLocation?.id || null;
-
   return (
     <LocationContext.Provider
       value={{
         locations,
         selectedLocation,
-        selectedLocationId,
         setSelectedLocation,
         selectLocationById,
         refreshLocations: fetchLocations,
@@ -52,5 +49,3 @@ export const LocationProvider = ({ children }) => {
 };
 
 export const useLocation = () => useContext(LocationContext);
-export const useLocationContext = () => useContext(LocationContext);
-
