@@ -14,10 +14,7 @@ import {
   ScrollText,
   Building2,
   Layers,
-  Wrench,
-  AlertTriangle,
-  ShieldAlert,
-  Home
+  Wrench
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -66,26 +63,6 @@ export default function Sidebar() {
         <NavLink to="/simulation" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <Sliders size={18} />
           <span>20-Yr Simulation</span>
-        </NavLink>
-      </div>
-
-      <div className="sidebar-group">
-        <div className="group-title">DISASTER & EMERGENCY SWM</div>
-        <NavLink to="/disasters/planning" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <AlertTriangle size={18} />
-          <span>Disaster Events & Impact</span>
-        </NavLink>
-        <NavLink to="/disasters/analysis" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <ShieldAlert size={18} />
-          <span>Debris Accumulation</span>
-        </NavLink>
-        <NavLink to="/disasters/scenarios" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <Layers size={18} />
-          <span>Emergency Scenarios</span>
-        </NavLink>
-        <NavLink to="/emergency-shelters" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <Home size={18} />
-          <span>Relief Shelters</span>
         </NavLink>
       </div>
 
