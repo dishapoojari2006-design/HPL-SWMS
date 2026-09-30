@@ -32,6 +32,30 @@ def analyze_time_series_records(
         }
 
     sorted_records = sorted(records, key=lambda x: x["measurement_date"])
+    
+    # Filter by period_type if start_date/end_date not explicitly supplied
+    if sorted_records and period_type and period_type not in ["ALL", "ALL_RECORDS", "CUSTOM"]:
+        max_d = sorted_records[-1]["measurement_date"]
+        days_map = {
+            "1_DAY": 1,
+            "2_DAY": 2,
+            "2_DAYS": 2,
+            "1_WEEK": 7,
+            "1_MONTH": 30,
+            "3_MONTH": 90,
+            "3_MONTHS": 90,
+            "6_MONTH": 180,
+            "6_MONTHS": 180,
+            "1_YEAR": 365,
+            "1_YEARS": 365,
+            "2_YEARS": 730,
+        }
+        if period_type in days_map:
+            cutoff = max_d - timedelta(days=days_map[period_type])
+            sorted_records = [r for r in sorted_records if r["measurement_date"] > cutoff]
+            if not sorted_records:
+                sorted_records = sorted(records, key=lambda x: x["measurement_date"])
+
     quantities = [float(r["quantity"]) for r in sorted_records]
     dates = [r["measurement_date"] for r in sorted_records]
     
@@ -93,9 +117,11 @@ def analyze_time_series_records(
 
     daily_ts = []
     for r in sorted_records:
+        qty_val = round(float(r["quantity"]), 3)
         daily_ts.append({
             "date": r["measurement_date"].isoformat(),
-            "quantity_tonnes": round(float(r["quantity"]), 3),
+            "quantity": qty_val,
+            "quantity_tonnes": qty_val,
             "category": r.get("waste_category", "MIXED"),
             "quality_status": r.get("quality_status", "MEASURED")
         })

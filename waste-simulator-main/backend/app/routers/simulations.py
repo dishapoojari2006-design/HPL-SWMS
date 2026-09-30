@@ -113,7 +113,7 @@ def run_simulation(
 def run_simulation_endpoint(
     sim_in: SimulationRunIn,
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles(*PLANNER_ROLES))
+    user: User = Depends(get_current_user)
 ):
     return _execute_simulation(sim_in, db, user)
 

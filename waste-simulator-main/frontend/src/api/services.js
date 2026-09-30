@@ -24,13 +24,13 @@ export const locationService = {
 
 export const parameterService = {
   getDemography: (locationId) => apiClient.get(`/parameters/demography/${locationId}`),
-  saveDemography: (locationId, data) => apiClient.post(`/parameters/demography/${locationId}`, data),
+  saveDemography: (locationId, data) => apiClient.post("/parameters/demography", { habitation_id: locationId, ...data }),
   getInfrastructure: (locationId) => apiClient.get(`/parameters/infrastructure/${locationId}`),
-  saveInfrastructure: (locationId, data) => apiClient.post(`/parameters/infrastructure/${locationId}`, data),
+  saveInfrastructure: (locationId, data) => apiClient.post("/parameters/infrastructure", { habitation_id: locationId, ...data }),
   getIndustrial: (locationId) => apiClient.get(`/parameters/industrial/${locationId}`),
-  saveIndustrial: (locationId, data) => apiClient.post(`/parameters/industrial/${locationId}`, data),
+  saveIndustrial: (locationId, data) => apiClient.post("/parameters/industrial", { habitation_id: locationId, ...data }),
   getComposition: (locationId) => apiClient.get(`/parameters/composition/${locationId}`),
-  saveComposition: (locationId, data) => apiClient.post(`/parameters/composition/${locationId}`, data),
+  saveComposition: (locationId, data) => apiClient.post("/parameters/composition", { habitation_id: locationId, ...data }),
 };
 
 export const wasteService = {
@@ -54,13 +54,18 @@ export const eventService = {
 };
 
 export const historicalService = {
-  list: (locationId, params) => apiClient.get(`/historical-waste?location_id=${locationId}`, { params }),
+  list: (locationId, params = {}) => apiClient.get("/historical-waste", { params: { habitation_id: locationId, ...params } }),
   create: (data) => apiClient.post("/historical-waste", data),
-  getAnalytics: (locationId, params) => apiClient.get(`/historical-waste/analytics/${locationId}`, { params }),
+  getAnalytics: (locationId, params = {}) => apiClient.get("/historical-waste/analytics", { params: { habitation_id: locationId, ...params } }),
 };
 
 export const forecastService = {
-  getEvaluation: (locationId, params) => apiClient.get(`/forecast/evaluation/${locationId}`, { params }),
+  getEvaluation: (locationId, params = {}) => apiClient.post("/forecast/run", {
+    location_id: locationId,
+    habitation_id: locationId,
+    forecast_period: params.period || "NEXT_MONTH",
+    selected_method: params.selected_method_override || (params.selected_method !== "AUTO" ? params.selected_method : undefined)
+  }),
   saveForecast: (data) => apiClient.post("/forecast", data),
 };
 
@@ -84,7 +89,8 @@ export const chatService = {
 };
 
 export const reportService = {
-  generate: (locationId, data) => apiClient.post(`/reports/generate/${locationId}`, data),
+  generate: (locationId) => apiClient.get(`/reports/${locationId}`),
+  publish: (locationId, title) => apiClient.post(`/reports/${locationId}/publish`, null, { params: { title } }),
 };
 
 export const dataQualityService = {

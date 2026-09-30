@@ -261,19 +261,21 @@ def seed_database():
             ))
             db.commit()
 
-        # 10. Seed Historical Time-Series records (30 days of weighbridge measurements)
-        if db.query(HistoricalWaste).filter(HistoricalWaste.habitation_id == 1).count() == 0:
+        # 10. Seed Historical Time-Series records (365 days of weighbridge measurements)
+        if db.query(HistoricalWaste).filter(HistoricalWaste.habitation_id == 1).count() < 100:
+            db.query(HistoricalWaste).filter(HistoricalWaste.habitation_id == 1).delete()
             import datetime as dt
-            base_date = dt.date(2026, 9, 1)
-            quantities = [
-                14.2, 14.5, 14.1, 15.0, 15.2, 16.1, 16.4,
-                14.3, 14.6, 14.4, 15.1, 15.3, 16.0, 16.5,
-                14.5, 14.7, 14.2, 15.2, 15.4, 16.2, 16.8,
-                14.4, 14.8, 14.5, 15.3, 15.5, 16.3, 16.6,
-                14.6, 15.0
-            ]
-            for i, qty in enumerate(quantities):
+            import math
+            base_date = dt.date(2025, 10, 1)
+            for i in range(365):
                 rec_date = base_date + dt.timedelta(days=i)
+                # Seasonal + weekly pattern math simulation
+                day_of_week = rec_date.weekday()
+                weekend_bump = 1.8 if day_of_week in [5, 6] else 0.0
+                seasonal_trend = math.sin(i / 58.0) * 1.5
+                base_qty = 14.5 + weekend_bump + seasonal_trend + ((i % 7) * 0.15)
+                qty = round(max(10.0, base_qty), 1)
+                
                 db.add(HistoricalWaste(
                     habitation_id=1,
                     measurement_date=rec_date,

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLocation } from "../context/LocationContext";
 import { parameterService, wasteService } from "../api/services";
 import { Wrench, CheckCircle, ChevronRight, ChevronLeft, Save } from "lucide-react";
@@ -10,6 +11,7 @@ const STEPS = [
 ];
 
 export default function WizardPage() {
+  const navigate = useNavigate();
   const { selectedLocation } = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [demoData, setDemoData] = useState({
@@ -155,13 +157,21 @@ export default function WizardPage() {
           >
             <ChevronLeft size={16} /> Previous Step
           </button>
-          <button
-            disabled={currentStep === 14}
-            onClick={() => setCurrentStep(currentStep + 1)}
-            className="nav-btn-next"
-          >
-            Next Step <ChevronRight size={16} />
-          </button>
+          {currentStep < 14 ? (
+            <button
+              onClick={() => setCurrentStep(currentStep + 1)}
+              className="nav-btn-next"
+            >
+              Next Step <ChevronRight size={16} />
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/calculator")}
+              className="nav-btn-next finish-btn"
+            >
+              Finish & Go to Calculator <ChevronRight size={16} />
+            </button>
+          )}
         </div>
       </div>
     </div>

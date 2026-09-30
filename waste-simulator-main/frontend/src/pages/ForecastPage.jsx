@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "../context/LocationContext";
+import { useAuth } from "../context/AuthContext";
 import { forecastService } from "../api/services";
-import { TrendingUp, Award, AlertCircle, BarChart3 } from "lucide-react";
+import { TrendingUp, Award, AlertCircle, BarChart3, Lock } from "lucide-react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -34,6 +35,7 @@ export default function ForecastPage() {
   }, [selectedLocation, period, selectedMethod]);
 
   if (!selectedLocation) return <div className="page-loading">Please select an administrative location.</div>;
+
   if (loading || !forecast) return <div className="page-loading">Evaluating forecasting models & computing backtests...</div>;
 
   return (

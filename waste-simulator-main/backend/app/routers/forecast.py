@@ -21,7 +21,7 @@ PLANNER_ROLES = ["SUPER_ADMIN", "MUNICIPAL_AUTHORITY", "PANCHAYAT_AUTHORITY", "P
 def run_forecast(
     forecast_in: ForecastRunIn,
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles(*PLANNER_ROLES))
+    user: User = Depends(get_current_user)
 ):
     loc = db.get(Location, forecast_in.location_id)
     if not loc:

@@ -78,10 +78,12 @@ export default function Sidebar() {
             <span>User Management</span>
           </NavLink>
         )}
-        <NavLink to="/audit-logs" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <ScrollText size={18} />
-          <span>Audit Logs</span>
-        </NavLink>
+        {hasRole("SUPER_ADMIN", "MUNICIPAL_AUTHORITY", "PANCHAYAT_AUTHORITY") && (
+          <NavLink to="/audit-logs" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+            <ScrollText size={18} />
+            <span>Audit Logs</span>
+          </NavLink>
+        )}
       </div>
     </aside>
   );
