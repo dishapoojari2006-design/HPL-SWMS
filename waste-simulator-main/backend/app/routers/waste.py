@@ -1,5 +1,10 @@
-from typing import Dict, Any
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.models.location import Location
+from app.models.parameters import DemographyParameter, InfrastructureParameter, IndustrialParameter, WasteComposition
+from app.models.facility import Facility
+from app.models.historical_waste import HistoricalWaste
 from app.core.security import get_current_user
 from app.models.user import User
 from app.schemas.waste import MultiMethodCalculationIn, MultiMethodCalculationOut
@@ -20,6 +25,131 @@ from app.services.calculation_service import (
 )
 
 router = APIRouter(prefix="/waste", tags=["Waste Calculations & Multi-Method"])
+
+@router.get("/comprehensive/{location_id}")
+def get_comprehensive_waste(location_id: int, db: Session = Depends(get_db)):
+    loc = db.get(Location, location_id)
+    if not loc:
+        raise HTTPException(status_code=404, detail="Location not found")
+        
+    demo = db.query(DemographyParameter).filter(DemographyParameter.habitation_id == location_id).first()
+    infra = db.query(InfrastructureParameter).filter(InfrastructureParameter.habitation_id == location_id).first()
+    ind = db.query(IndustrialParameter).filter(IndustrialParameter.habitation_id == location_id).first()
+    comp = db.query(WasteComposition).filter(WasteComposition.habitation_id == location_id).first()
+    facilities = db.query(Facility).filter(Facility.location_id == location_id).all()
+    
+    pop = demo.total_population if demo else 25000.0
+    floating_pop = demo.floating_population if demo else 2000.0
+    per_capita = 0.50
+    households = demo.number_of_households if demo else 5000.0
+    per_hh = 2.27
+    
+    effective_pop = pop + floating_pop
+    method_a = calculate_method_a_person(effective_pop, per_capita)
+    method_b = calculate_method_b_household(households, per_hh)
+    
+    hist = db.query(HistoricalWaste).filter(HistoricalWaste.habitation_id == location_id).order_by(HistoricalWaste.measurement_date.desc()).first()
+    measured_tonnes = hist.quantity if hist else None
+    method_c = calculate_method_c_measured(measured_tonnes)
+    
+    ind_waste = ind.industrial_waste_kg_day if ind else 2000.0
+    method_d = calculate_method_d_industry(
+        industry_count=ind.number_of_industries if ind else 10,
+        workers=500,
+        worker_rate_kg_day=0.60,
+        reported_kg_day=ind_waste
+    )
+    
+    method_e = calculate_method_e_hospital(beds=50, occupied_beds=35)
+    method_f = calculate_method_f_institution(students_staff=2000)
+    method_g = calculate_method_g_hotel(rooms=100, occupancy_rate=70)
+    method_h = calculate_method_h_market(vendors=150)
+    
+    source_total_kg = (
+        method_a["daily_kg"] +
+        method_d["daily_kg"] +
+        method_e["daily_kg"] +
+        method_f["daily_kg"] +
+        method_g["daily_kg"] +
+        method_h["daily_kg"]
+    )
+    
+    reconciliation = cross_method_reconcile(
+        method_a=method_a,
+        method_b=method_b,
+        method_c=method_c,
+        source_aggregated_kg=source_total_kg
+    )
+    
+    daily_waste_kg = reconciliation["reconciled_daily_kg"]
+    
+    vehicle_count = infra.vehicle_count if infra else 10
+    vehicle_cap = infra.vehicle_capacity_kg if infra else 2000.0
+    trips = infra.trips_per_vehicle if infra else 1
+    
+    collection = collection_gap_analysis(
+        daily_waste_kg=daily_waste_kg,
+        vehicle_count=vehicle_count,
+        vehicle_capacity_kg=vehicle_cap,
+        trips_per_vehicle=trips,
+        coverage_pct=infra.collection_coverage_percent if infra else 100.0
+    )
+    
+    transport = transport_gap_analysis(
+        daily_waste_kg=daily_waste_kg,
+        vehicle_count=vehicle_count,
+        vehicle_capacity_kg=vehicle_cap,
+        trips_per_vehicle=trips
+    )
+    
+    segregation = segregation_gap_analysis(
+        daily_waste_kg=daily_waste_kg,
+        current_segregation_pct=60.0,
+        target_segregation_pct=80.0
+    )
+    
+    facility_cap = sum([f.capacity_kg_day for f in facilities if f.capacity_kg_day]) if facilities else 0.0
+    infra_treatment_cap = infra.treatment_capacity_kg if infra else 10000.0
+    treatment_cap = max(facility_cap, infra_treatment_cap)
+    
+    treatment = treatment_gap_analysis(
+        daily_waste_kg=daily_waste_kg,
+        treatment_capacity_kg=treatment_cap
+    )
+    
+    comp_dict = {
+        "organic_percent": comp.organic_percent if comp else 50.0,
+        "paper_percent": comp.paper_percent if comp else 12.0,
+        "plastic_percent": comp.plastic_percent if comp else 10.0,
+        "metal_percent": comp.metal_percent if comp else 3.0,
+        "glass_percent": comp.glass_percent if comp else 4.0,
+        "textile_percent": comp.textile_percent if comp else 4.0,
+        "ewaste_percent": comp.ewaste_percent if comp else 2.0,
+        "other_percent": comp.other_percent if comp else 15.0
+    }
+    
+    return {
+        "location": {
+            "id": loc.id,
+            "name": loc.name,
+            "location_type": loc.location_type,
+            "district": loc.district,
+            "state": loc.state,
+            "terrain": loc.terrain
+        },
+        "composition": comp_dict,
+        "method_a": method_a,
+        "method_b": method_b,
+        "method_c": method_c,
+        "source_aggregated_daily_kg": source_total_kg,
+        "reconciliation": reconciliation,
+        "collection": collection,
+        "transport": transport,
+        "segregation": segregation,
+        "treatment": treatment
+    }
+
+
 
 @router.post("/calculate-multi-method", response_model=MultiMethodCalculationOut)
 def calculate_multi_method(calc_in: MultiMethodCalculationIn, user: User = Depends(get_current_user)):

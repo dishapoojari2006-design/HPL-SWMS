@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "../context/LocationContext";
+import { useAuth } from "../context/AuthContext";
 import { wasteService, dataQualityService } from "../api/services";
 import {
   Trash2,
@@ -27,6 +28,7 @@ import {
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#64748b"];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const { selectedLocation } = useLocation();
   const [data, setData] = useState(null);
   const [dataQuality, setDataQuality] = useState(null);

@@ -512,22 +512,25 @@ body {
 }
 
 .chat-bubble {
-  max-width: 90%;
-  padding: 12px 14px;
-  border-radius: 8px;
-  font-size: 13px;
+  max-width: 92%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  line-height: 1.6;
 }
 
 .chat-bubble.bot {
   align-self: flex-start;
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .chat-bubble.user {
   align-self: flex-end;
   background-color: rgba(16, 185, 129, 0.2);
   color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .bubble-header {
@@ -536,22 +539,40 @@ body {
   gap: 6px;
   font-size: 11px;
   font-weight: 600;
-  margin-bottom: 4px;
-  opacity: 0.8;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+.bubble-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+.bubble-text strong {
+  color: #34d399;
+}
+
+.chat-bubble.user .bubble-text strong {
+  color: #6ee7b7;
 }
 
 .evidence-card {
-  margin-top: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 11px;
+  margin-top: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .evidence-card pre {
-  max-height: 120px;
+  max-height: 140px;
   overflow-y: auto;
   color: var(--accent-emerald);
+  font-family: monospace;
+  font-size: 11px;
+  margin-top: 4px;
 }
 
 .chat-input-box {

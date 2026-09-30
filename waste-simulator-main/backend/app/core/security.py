@@ -82,6 +82,26 @@ def get_current_user(
         )
     return user
 
+security_optional = HTTPBearer(auto_error=False)
+
+def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
+    db: Session = Depends(get_db)
+):
+    if not credentials:
+        return None
+    from app.models.user import User
+    try:
+        payload = decode_access_token(credentials.credentials)
+        user_id = payload.get("sub")
+        if user_id:
+            user = db.get(User, int(user_id))
+            if user and user.active:
+                return user
+    except Exception:
+        return None
+    return None
+
 def require_roles(*allowed_roles: str):
     def role_checker(user = Depends(get_current_user)):
         if user.role not in allowed_roles:
@@ -91,3 +111,4 @@ def require_roles(*allowed_roles: str):
             )
         return user
     return role_checker
+
