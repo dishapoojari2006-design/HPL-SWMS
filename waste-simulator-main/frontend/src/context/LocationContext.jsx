@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { locationService } from "../api/services";
+import { useAuth } from "./AuthContext";
 
 const LocationContext = createContext(null);
 
@@ -13,8 +14,14 @@ export const LocationProvider = ({ children }) => {
     try {
       const res = await locationService.list();
       setLocations(res.data);
-      if (res.data.length > 0 && !selectedLocation) {
-        setSelectedLocation(res.data[0]);
+      if (res.data && res.data.length > 0) {
+        setSelectedLocation((prev) => {
+          if (prev) {
+            const found = res.data.find((l) => l.id === prev.id);
+            if (found) return found;
+          }
+          return res.data[0];
+        });
       }
     } catch (err) {
       console.error("Failed to load locations:", err);
@@ -23,9 +30,16 @@ export const LocationProvider = ({ children }) => {
     }
   };
 
+  const { token, user } = useAuth();
+
   useEffect(() => {
-    fetchLocations();
-  }, []);
+    if (token) {
+      fetchLocations();
+    } else {
+      setLocations([]);
+      setSelectedLocation(null);
+    }
+  }, [token, user?.id]);
 
   const selectLocationById = (id) => {
     const found = locations.find((l) => l.id === parseInt(id, 10));

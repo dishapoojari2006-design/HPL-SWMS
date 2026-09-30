@@ -21,7 +21,7 @@ import UsersPage from "./pages/UsersPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 
 const ProtectedLayout = () => {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const [chatOpen, setChatOpen] = useState(false);
 
   if (!user) {
@@ -42,7 +42,16 @@ const ProtectedLayout = () => {
             <Route path="/simulation" element={<SimulationPage />} />
             <Route path="/gis" element={<GISPage />} />
             <Route path="/data-quality" element={<DataQualityPage />} />
-            <Route path="/wizard" element={<WizardPage />} />
+            <Route
+              path="/wizard"
+              element={
+                hasRole("SUPER_ADMIN", "ADMIN", "MUNICIPAL_AUTHORITY", "PANCHAYAT_AUTHORITY", "PLANNER", "OPERATOR") ? (
+                  <WizardPage />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/audit-logs" element={<AuditLogsPage />} />

@@ -17,6 +17,46 @@ def list_users(
 ):
     return db.scalars(select(User).order_by(User.id.asc())).all()
 
+@router.post("", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+def create_user(
+    user_in: UserRegister,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_roles("SUPER_ADMIN"))
+):
+    existing = db.scalar(select(User).where(User.email == user_in.email))
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email address already exists."
+        )
+
+    user = User(
+        name=user_in.name,
+        email=user_in.email,
+        phone=user_in.phone,
+        password_hash=hash_password(user_in.password),
+        role=user_in.role,
+        authority_type=user_in.authority_type,
+        organization=user_in.organization,
+        location_id=user_in.location_id,
+        active=True
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    log_audit_event(
+        db=db,
+        user_name=admin.name,
+        user_id=admin.id,
+        action="CREATE_USER",
+        module="USERS",
+        record_id=user.id,
+        details={"created_email": user.email, "role": user.role}
+    )
+
+    return user
+
 @router.get("/{user_id}", response_model=UserOut)
 def get_user(
     user_id: int,

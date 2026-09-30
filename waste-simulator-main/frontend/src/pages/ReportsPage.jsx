@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useLocation } from "../context/LocationContext";
 import { reportService } from "../api/services";
+import html2pdf from "html2pdf.js";
 import {
   FileText,
   Printer,
+  Download,
   CheckCircle2,
   AlertTriangle,
   Award,
@@ -18,12 +20,15 @@ import {
   ArrowUpRight
 } from "lucide-react";
 
+import logoImg from "../assets/swms_logo.jpg";
+
 export default function ReportsPage() {
   const { selectedLocation } = useLocation();
   const [reportType, setReportType] = useState("EXECUTIVE_SUMMARY");
   const [report, setReport] = useState(null);
   const [activeFormat, setActiveFormat] = useState("EXECUTIVE_SUMMARY");
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const handleGenerate = async () => {
     if (!selectedLocation) return;
@@ -41,6 +46,77 @@ export default function ReportsPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById("report-printable-area");
+    if (!element) return;
+
+    setDownloading(true);
+    const fileName = `${activeFormat}_${report?.metadata?.location_name || 'Report'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+    // Hide action buttons during capture
+    const actionsBtnBox = element.querySelector('.report-doc-actions');
+    if (actionsBtnBox) actionsBtnBox.style.display = 'none';
+
+    // Apply formal white-paper document theme during render
+    const originalBg = element.style.background;
+    const originalColor = element.style.color;
+    const originalBorder = element.style.border;
+
+    element.style.background = "#ffffff";
+    element.style.color = "#0f172a";
+    element.style.border = "1px solid #cbd5e1";
+
+    // Set all child section backgrounds and force high-contrast dark text
+    const allElements = element.querySelectorAll('*');
+    allElements.forEach(el => {
+      el.dataset.origColor = el.style.color;
+      el.dataset.origBg = el.style.background;
+
+      // Reset light muted text colors (like Tailwind text-slate-400/300) to crisp dark text for white background
+      const computedColor = window.getComputedStyle(el).color;
+      if (computedColor.includes("148, 163, 184") || computedColor.includes("203, 213, 225") || computedColor.includes("100, 116, 139") || computedColor.includes("248, 250, 252")) {
+        el.style.color = "#1e293b";
+      }
+
+      if (el.tagName === 'TH') {
+        el.style.background = "#e2e8f0";
+        el.style.color = "#0f172a";
+      } else if (el.tagName === 'TD') {
+        el.style.color = "#1e293b";
+      } else if (el.classList.contains('report-section') || el.classList.contains('report-data-box') || el.classList.contains('compliance-status-row')) {
+        el.style.background = "#f8fafc";
+        el.style.border = "1px solid #e2e8f0";
+        el.style.color = "#0f172a";
+      }
+    });
+
+    const opt = {
+      margin:       [10, 10, 10, 10],
+      filename:     fileName,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      window.print();
+    } finally {
+      // Restore UI elements and dark theme
+      if (actionsBtnBox) actionsBtnBox.style.display = 'flex';
+      element.style.background = originalBg;
+      element.style.color = originalColor;
+      element.style.border = originalBorder;
+      allElements.forEach(el => {
+        el.style.background = el.dataset.origBg || '';
+        el.style.color = el.dataset.origColor || '';
+      });
+      setDownloading(false);
+    }
   };
 
   if (!selectedLocation) {
@@ -74,30 +150,61 @@ export default function ReportsPage() {
 
       {/* Rendered Document */}
       {report && (
-        <div className="report-doc-container">
+        <div className="report-doc-container" id="report-printable-area">
           {/* Document Header */}
           <div className="report-doc-header">
-            <div className="report-doc-title-box">
-              <div className="sim-badge-row">
-                <span className="sim-pill-tag">OFFICIAL MUNICIPAL SUBMISSION</span>
-                <span className="text-xs text-slate-400">Ref ID: SWMS-REP-{selectedLocation.id}-{Date.now().toString().slice(-6)}</span>
-              </div>
-              <h3>
-                {activeFormat === "EXECUTIVE_SUMMARY" && `Executive Municipal Waste Summary — ${report.metadata?.location_name}`}
-                {activeFormat === "STATUTORY_COMPLIANCE" && `SWM Rules 2016 Statutory Audit & Compliance Scorecard — ${report.metadata?.location_name}`}
-                {activeFormat === "LONG_TERM_MASTER_PLAN" && `20-Year Infrastructure Action Master Plan — ${report.metadata?.location_name}`}
-              </h3>
-              <div className="report-doc-meta">
-                <span><strong>Authority:</strong> {report.metadata?.location_name} ({report.metadata?.location_type})</span>
-                <span><strong>District:</strong> {report.metadata?.district}, {report.metadata?.state}</span>
-                <span><strong>Timestamp:</strong> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                <span><strong>Data Quality Score:</strong> <strong className="text-emerald-400">{report.metadata?.data_quality_percent}% Verified</strong></span>
+            <div className="report-doc-title-box" style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+              <img
+                src={logoImg}
+                alt="Official Logo"
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "10px",
+                  objectFit: "cover",
+                  border: "1px solid #cbd5e1",
+                  flexShrink: 0
+                }}
+              />
+              <div>
+                <div className="sim-badge-row">
+                  <span className="sim-pill-tag">OFFICIAL MUNICIPAL SUBMISSION</span>
+                  <span className="text-xs text-slate-400">Ref ID: SWMS-REP-{selectedLocation.id}-{Date.now().toString().slice(-6)}</span>
+                </div>
+                <h3>
+                  {activeFormat === "EXECUTIVE_SUMMARY" && `Executive Municipal Waste Summary — ${report.metadata?.location_name}`}
+                  {activeFormat === "STATUTORY_COMPLIANCE" && `SWM Rules 2016 Statutory Audit & Compliance Scorecard — ${report.metadata?.location_name}`}
+                  {activeFormat === "LONG_TERM_MASTER_PLAN" && `20-Year Infrastructure Action Master Plan — ${report.metadata?.location_name}`}
+                </h3>
+                <div className="report-doc-meta">
+                  <span><strong>Authority:</strong> {report.metadata?.location_name} ({report.metadata?.location_type})</span>
+                  <span><strong>District:</strong> {report.metadata?.district}, {report.metadata?.state}</span>
+                  <span><strong>Timestamp:</strong> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                  <span><strong>Data Quality Score:</strong> <strong className="text-emerald-400">{report.metadata?.data_quality_percent}% Verified</strong></span>
+                </div>
               </div>
             </div>
 
-            <div className="report-doc-actions">
-              <button className="report-action-btn" onClick={handlePrint}>
-                <Printer size={15} /> Print / Export PDF
+            <div className="report-doc-actions" style={{ display: "flex", gap: "10px" }}>
+              <button className="report-action-btn" onClick={handlePrint} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <Printer size={15} /> Print
+              </button>
+              <button
+                className="report-action-btn"
+                onClick={handleDownloadPDF}
+                disabled={downloading}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                  color: "#ffffff",
+                  borderColor: "#3b82f6",
+                  cursor: downloading ? "wait" : "pointer",
+                  opacity: downloading ? 0.7 : 1
+                }}
+              >
+                <Download size={15} /> {downloading ? "Downloading PDF..." : "Download PDF"}
               </button>
             </div>
           </div>

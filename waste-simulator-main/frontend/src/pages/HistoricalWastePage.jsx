@@ -62,7 +62,16 @@ export default function HistoricalWastePage() {
       setNewQty("");
       loadData();
     } catch (err) {
-      alert("Failed to record historical entry.");
+      if (err.response?.status === 409) {
+        alert(`Duplicate Record: A measurement for date ${newDate} already exists for this location.`);
+      } else if (err.response?.status === 422) {
+        const detailMsg = Array.isArray(err.response?.data?.detail)
+          ? err.response.data.detail.map((d) => d.msg).join(", ")
+          : "Invalid quantity: Waste tonnage must be 0 or a positive number.";
+        alert(`Validation Error: ${detailMsg}`);
+      } else {
+        alert(err.response?.data?.detail || "Failed to record historical entry.");
+      }
     }
   };
 
@@ -171,6 +180,7 @@ export default function HistoricalWastePage() {
           <input
             type="number"
             step="0.01"
+            min="0"
             placeholder="Quantity (Tonnes)"
             required
             value={newQty}

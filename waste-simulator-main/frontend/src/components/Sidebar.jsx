@@ -40,10 +40,12 @@ export default function Sidebar() {
 
       <div className="sidebar-group">
         <div className="group-title">PLANNING & DATA ENTRY</div>
-        <NavLink to="/wizard" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <Wrench size={18} />
-          <span>14-Step Data Wizard</span>
-        </NavLink>
+        {hasRole("SUPER_ADMIN", "ADMIN", "MUNICIPAL_AUTHORITY", "PANCHAYAT_AUTHORITY", "PLANNER", "OPERATOR") && (
+          <NavLink to="/wizard" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+            <Wrench size={18} />
+            <span>Data Setup Wizard</span>
+          </NavLink>
+        )}
         <NavLink to="/calculator" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <Calculator size={18} />
           <span>Methods A–H Calculator</span>

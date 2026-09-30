@@ -23,7 +23,7 @@ export default function AuditLogsPage() {
       <div className="audit-view">
         <div className="page-header">
           <div>
-            <h2>Immutable System Audit Trail</h2>
+            <h2>Audit Trail</h2>
             <p>Security & compliance log of all data modifications and calculations</p>
           </div>
         </div>
@@ -42,7 +42,7 @@ export default function AuditLogsPage() {
     <div className="audit-view">
       <div className="page-header">
         <div>
-          <h2>Immutable System Audit Trail</h2>
+          <h2> Audit Trail</h2>
           <p>Security & compliance log of all data modifications and calculations</p>
         </div>
       </div>

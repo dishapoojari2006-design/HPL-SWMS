@@ -25,6 +25,16 @@ body {
   min-height: 100vh;
 }
 
+/* Chrome/Safari Autofill Dark Mode Override */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0f172a inset !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  transition: background-color 50000s ease-in-out 0s;
+}
+
 /* App Shell */
 .app-shell {
   display: flex;
@@ -1294,4 +1304,52 @@ body {
 
 .compliance-status-row.fail {
   border-left-color: #ef4444;
+}
+
+/* Formal Document Print Media Styles */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  .navbar,
+  .sidebar,
+  .page-header,
+  .report-gen-card,
+  .report-doc-actions,
+  .chat-btn {
+    display: none !important;
+  }
+
+  .app-shell,
+  .app-body,
+  .main-content {
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .report-doc-container {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .report-section,
+  .report-data-box,
+  .compliance-status-row {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+
+  .report-doc-title-box h3,
+  .report-section-title,
+  .report-data-value {
+    color: #0f172a !important;
+  }
 }

@@ -19,7 +19,7 @@ from app.services.audit_service import log_audit_event
 
 router = APIRouter(prefix="/historical-waste", tags=["Historical Waste Time-Series"])
 
-EDIT_ROLES = ["SUPER_ADMIN", "MUNICIPAL_AUTHORITY", "PANCHAYAT_AUTHORITY", "PLANNER", "DATA_ENTRY"]
+EDIT_ROLES = ["SUPER_ADMIN", "ADMIN", "MUNICIPAL_AUTHORITY", "PANCHAYAT_AUTHORITY", "PLANNER", "OPERATOR", "DATA_ENTRY"]
 
 @router.post("", response_model=HistoricalWasteOut, status_code=status.HTTP_201_CREATED)
 def create_historical_record(
@@ -30,11 +30,16 @@ def create_historical_record(
     if not db.get(Location, record_in.habitation_id):
         raise HTTPException(status_code=404, detail="Referenced location/habitation does not exist.")
 
-    dup_query = select(HistoricalWaste).where(
+    dup_where = [
         HistoricalWaste.habitation_id == record_in.habitation_id,
         HistoricalWaste.measurement_date == record_in.measurement_date,
-        HistoricalWaste.source_id == record_in.source_id
-    )
+    ]
+    if record_in.source_id is None:
+        dup_where.append(HistoricalWaste.source_id.is_(None))
+    else:
+        dup_where.append(HistoricalWaste.source_id == record_in.source_id)
+
+    dup_query = select(HistoricalWaste).where(*dup_where)
     if db.scalar(dup_query):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -42,19 +47,26 @@ def create_historical_record(
         )
 
     rec = HistoricalWaste(**record_in.model_dump(), created_by=user.name)
-    db.add(rec)
-    db.commit()
-    db.refresh(rec)
+    try:
+      db.add(rec)
+      db.commit()
+      db.refresh(rec)
+    except Exception as e:
+      db.rollback()
+      raise HTTPException(status_code=400, detail=f"Database error while recording entry: {str(e)}")
 
-    log_audit_event(
-        db=db,
-        user_name=user.name,
-        user_id=user.id,
-        action="CREATE_HISTORICAL_RECORD",
-        module="HISTORICAL_WASTE",
-        record_id=rec.id,
-        details={"date": str(rec.measurement_date), "quantity": rec.quantity}
-    )
+    try:
+      log_audit_event(
+          db=db,
+          user_name=user.name,
+          user_id=user.id,
+          action="CREATE_HISTORICAL_RECORD",
+          module="HISTORICAL_WASTE",
+          record_id=rec.id,
+          details={"date": str(rec.measurement_date), "quantity": rec.quantity}
+      )
+    except Exception as audit_err:
+      print("Audit log error ignored:", audit_err)
 
     return rec
 
